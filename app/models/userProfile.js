@@ -6,14 +6,14 @@ const userProfile = new mongoose.Schema({
 			required: true,
 		},
 		age: {
-			type: String,
+			type: Number,
       min: 18,
       max: 99,
 			required: true
 		},
 		gender: {
 			type: String,
-      enum: ['M', 'F'],
+      enum: ['Male', 'Female'],
 			required: true,
     },
 		location: {
