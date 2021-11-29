@@ -1,11 +1,13 @@
 // Express docs: http://expressjs.com/en/api.html
 const express = require('express')
+const mongoose = require('mongoose')
+const ObjectID = require('mongodb').ObjectID
 // Passport docs: http://www.passportjs.org/docs/
 const passport = require('passport')
 
 // pull in Mongoose model for userProfile
 const { UserProfileSchema, UserProfileModel } = require('../models/userProfile')
-const User = require('../models/user')
+ const User = require('../models/user')
 
 // this is a collection of methods that help us detect situations when we need
 // to throw a custom error
@@ -31,7 +33,7 @@ const router = express.Router()
 // INDEX
 // GET /userProfile
 router.get('/userProfile', requireToken, (req, res, next) => {
-  UserProfileModel.find()
+  UserProfile.find()
 		// respond with status 200 and JSON of the userProfile
 		.then((userProfile) => res.status(200).json({ userProfile: userProfile }))
 		// if an error occurs, pass it to the handler
@@ -42,7 +44,7 @@ router.get('/userProfile', requireToken, (req, res, next) => {
 // GET /userProfile/5a7db6c74d55bc51bdf39793
 router.get('/userProfile/:id', requireToken, (req, res, next) => {
 	// req.params.id will be set based on the `:id` in the route
-	UserProfileModel.findById(req.params.id)
+	UserProfile.findById(req.params.id)
 		.then(handle404)
 		// if `findById` is succesful, respond with 200 and "userProfile" JSON
 		.then((userProfile) => res.status(200).json({ userProfile: userProfile }))
@@ -77,14 +79,18 @@ router.post('/userProfile', requireToken, (req, res, next) => {
 router.patch('/userProfile/:id', requireToken, removeBlanks, (req, res, next) => {
   // if the client attempts to change the `owner` property by including a new
   // owner, prevent that by deleting that key/value pair
-  delete req.body.userProfile.owner
+	delete req.body.userProfile.owner
+	const profileData = req.body.userProfile
+	const profileId = req.params.id
+	// req.body.userProfile.id = req.params.id
 
-  UserProfileModel.findById(req.params.id)
+	User.findById(req.user.id)
 		.then(handle404)
-		// ensure the signed in user (req.user.id) is the same as the userProfile's owner (userProfile.owner)
-		.then((userProfile) => requireOwnership(req, userProfile))
-		// updating userProfile object with userProfileData
-		.then((userProfile) => userProfile.updateOne(req.body.userProfile))
+		.then(user => {
+			const profileUpdate = user.userProfile.id(profileId)
+			profileUpdate.set(profileData)
+			return user.save()
+	})
 		// if that succeeded, return 204 and no JSON
 		.then(() => res.sendStatus(204))
 		// if an error occurs, pass it to the handler
@@ -94,7 +100,7 @@ router.patch('/userProfile/:id', requireToken, removeBlanks, (req, res, next) =>
 // DESTROY
 // DELETE /userProfile/5a7db6c74d55bc51bdf39793
 router.delete('/userProfile/:id', requireToken, (req, res, next) => {
-  UserProfileModel.findById(req.params.id)
+  UserProfile.findById(req.params.id)
 		.then(handle404)
 		// ensure the signed in user (req.user.id) is the same as the userProfile's owner (userProfile.owner)
 		.then((userProfile) => requireOwnership(req, userProfile))
