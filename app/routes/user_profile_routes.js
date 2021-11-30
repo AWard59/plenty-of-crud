@@ -7,7 +7,7 @@ const passport = require('passport')
 
 // pull in Mongoose model for userProfile
 const { UserProfileSchema, UserProfileModel } = require('../models/userProfile')
- const User = require('../models/user')
+const User = require('../models/user')
 
 // this is a collection of methods that help us detect situations when we need
 // to throw a custom error
@@ -33,7 +33,7 @@ const router = express.Router()
 // INDEX
 // GET /userProfile
 router.get('/userProfile', requireToken, (req, res, next) => {
-  UserProfile.find()
+  UserProfileModel.find()
 		// respond with status 200 and JSON of the userProfile
 		.then((userProfile) => res.status(200).json({ userProfile: userProfile }))
 		// if an error occurs, pass it to the handler
@@ -44,7 +44,7 @@ router.get('/userProfile', requireToken, (req, res, next) => {
 // GET /userProfile/5a7db6c74d55bc51bdf39793
 router.get('/userProfile/:id', requireToken, (req, res, next) => {
 	// req.params.id will be set based on the `:id` in the route
-	UserProfile.findById(req.params.id)
+	UserProfileModel.findById(req.params.id)
 		.then(handle404)
 		// if `findById` is succesful, respond with 200 and "userProfile" JSON
 		.then((userProfile) => res.status(200).json({ userProfile: userProfile }))
@@ -59,14 +59,19 @@ router.post('/userProfile', requireToken, (req, res, next) => {
   req.body.userProfile.owner = req.user.id
 	profileData = req.body.userProfile
 
-	User.findById(req.user.id)
-		.then(handle404)
-		.then(user => {
-			user.userProfile.push(profileData)
-			return user.save()
-		})
-	.then((user) => {
-		res.status(201).json({ user })
+	UserProfileModel.create(profileData)
+	.then(handle404)
+	.then((userProfile) => {
+		userProfileId = UserProfileModel._id
+		res.status(201).json({ userProfile })
+	})
+	.then(() => {
+		User.findById(req.user.id)
+			.then(handle404)
+			.then(user => {
+				user.userProfile.push(userProfileId)
+				return user.save()
+			})
 	})
 		// if an error occurs, pass it off to our error handler
 		// the error handler needs the error message and the `res` object so that it

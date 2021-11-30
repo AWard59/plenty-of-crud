@@ -13,8 +13,6 @@ const User = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
-		likes: [],
-		dislikes: [],
 		userProfile: [UserProfileSchema],
 		token: String,
 	},
