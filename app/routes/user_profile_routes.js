@@ -87,13 +87,36 @@ router.patch('/userProfile/:id', requireToken, removeBlanks, (req, res, next) =>
 	delete req.body.userProfile.owner
 	const profileData = req.body.userProfile
 	const profileId = req.params.id
-	// req.body.userProfile.id = req.params.id
 
 	User.findById(req.user.id)
 		.then(handle404)
 		.then(user => {
 			const profileUpdate = user.userProfile.id(profileId)
 			profileUpdate.set(profileData)
+			return user.save()
+	})
+		// if that succeeded, return 204 and no JSON
+		.then(() => res.sendStatus(204))
+		// if an error occurs, pass it to the handler
+		.catch(next)
+})
+
+// UPDATE
+// PATCH /userProfile/5a7db6c74d55bc51bdf39793/likeOrDislike
+router.patch('/userProfile/:id/likeOrDislike', requireToken, removeBlanks, (req, res, next) => {
+	const targetId = req.body.id
+	const likeOrDislike = req.body.data
+	const profileId = req.params.id
+
+	User.findById(req.user.id)
+		.then(handle404)
+		.then(user => {
+			const profileToUpdate = user.userProfile.id(profileId)
+			if (likeOrDislike === 'Like') {
+				profileToUpdate.likes.push(targetId)
+			} else if (likeOrDislike === 'Dislike') {
+				profileToUpdate.dislikes.push(targetId)
+			}
 			return user.save()
 	})
 		// if that succeeded, return 204 and no JSON
