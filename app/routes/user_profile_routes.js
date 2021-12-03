@@ -57,22 +57,20 @@ router.get('/userProfile/:id', requireToken, (req, res, next) => {
 router.post('/userProfile', requireToken, (req, res, next) => {
   // set owner of new userProfile to be current user                      
   req.body.userProfile.owner = req.user.id
-	profileData = req.body.userProfile
+	let profile
 
-	UserProfileModel.create(profileData)
+	UserProfileModel.create(req.body.userProfile)
 	.then(handle404)
 	.then((userProfile) => {
-		userProfileId = UserProfileModel._id
+		profile = userProfile
 		res.status(201).json({ userProfile })
 	})
-	.then(() => {
-		User.findById(req.user.id)
-			.then(handle404)
-			.then(user => {
-				user.userProfile.push(userProfileId)
-				return user.save()
+	.then(() => User.findById(req.user.id))
+		.then(handle404)
+		.then(user => {
+			user.userProfile.push(profile)
+			return user.save()
 			})
-	})
 		// if an error occurs, pass it off to our error handler
 		// the error handler needs the error message and the `res` object so that it
 		// can send an error message back to the client
@@ -96,7 +94,7 @@ router.patch('/userProfile/:id', requireToken, removeBlanks, (req, res, next) =>
 			return user.save()
 	})
 		// if that succeeded, return 204 and no JSON
-		.then(() => res.sendStatus(204))
+		.then((profile) => res.sendStatus(204))
 		// if an error occurs, pass it to the handler
 		.catch(next)
 })
@@ -110,7 +108,7 @@ router.patch('/userProfile/:id/likeOrDislike', requireToken, removeBlanks, (req,
 
 	User.findById(req.user.id)
 		.then(handle404)
-		.then(user => {
+		.then((user) => {
 			const profileToUpdate = user.userProfile.id(profileId)
 			if (likeOrDislike === 'Like') {
 				profileToUpdate.likes.push(targetId)
@@ -118,8 +116,20 @@ router.patch('/userProfile/:id/likeOrDislike', requireToken, removeBlanks, (req,
 				profileToUpdate.dislikes.push(targetId)
 			}
 			return user.save()
-	})
-		// if that succeeded, return 204 and no JSON
+		})
+		.then(() => {
+			UserProfileModel.findById(targetId)
+				.then(handle404)
+				.then((otherUser) => {
+					if (likeOrDislike === 'Like') {
+						otherUser.likedBy.push(profileId)
+					} else if (likeOrDislike === 'Dislike') {
+						profileToUpdate.dislikedBy.push(profileId)
+					}
+					return otherUser.save()
+			})
+		})
+		// if that succeeded, return 204
 		.then(() => res.sendStatus(204))
 		// if an error occurs, pass it to the handler
 		.catch(next)
@@ -128,12 +138,17 @@ router.patch('/userProfile/:id/likeOrDislike', requireToken, removeBlanks, (req,
 // DESTROY
 // DELETE /userProfile/5a7db6c74d55bc51bdf39793
 router.delete('/userProfile/:id', requireToken, (req, res, next) => {
-  UserProfile.findById(req.params.id)
+  UserProfileModel.findById(req.params.id)
 		.then(handle404)
 		// ensure the signed in user (req.user.id) is the same as the userProfile's owner (userProfile.owner)
 		.then((userProfile) => requireOwnership(req, userProfile))
 		// delete userProfile from mongodb
 		.then((userProfile) => userProfile.deleteOne())
+		.then(() => User.findById(req.user.id))
+			.then(user => {
+				user.userProfile.pull(req.params.id)
+				return user.save()
+			})
 		// send back 204 and no content if the deletion succeeded
 		.then(() => res.sendStatus(204))
 		// if an error occurs, pass it to the handler

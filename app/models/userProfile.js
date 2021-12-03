@@ -37,7 +37,10 @@ const userProfile = new mongoose.Schema(
 			ref: 'User',
 		},
 		likes: [],
-		dislikes: []
+		dislikes: [],
+		likedBy: [],
+		dislikedBy: [],
+		matched: []
 	},
 	{
 		timestamps: true,
