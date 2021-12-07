@@ -42,12 +42,33 @@ router.get('/userProfile', requireToken, (req, res, next) => {
 
 // SHOW
 // GET /userProfile/5a7db6c74d55bc51bdf39793
-router.get('/userProfile/:id', requireToken, (req, res, next) => {
+router.get('/userProfile/matches/userData/:id', requireToken, (req, res, next) => {
 	// req.params.id will be set based on the `:id` in the route
 	UserProfileModel.findById(req.params.id)
 		.then(handle404)
-		// if `findById` is succesful, respond with 200 and "userProfile" JSON
-		.then((userProfile) => res.status(200).json({ userProfile: userProfile }))
+		// if `findById` is successful, respond with 200 and "userProfile" JSON
+		.then((userProfile) => res.status(200).json({
+			data: {
+				name: userProfile.name,
+				age: userProfile.age,
+				gender: userProfile.gender,
+				location: userProfile.location,
+				description: userProfile.description,
+				tag: userProfile.tag,
+				id: userProfile._id
+			}
+		}))
+		// if an error occurs, pass it to the handler
+		.catch(next)
+})
+
+// SHOW
+// GET /userProfile/5a7db6c74d55bc51bdf39793/matches
+router.get('/userProfile/:id/matches', requireToken, removeBlanks, (req, res, next) => {
+	
+	UserProfileModel.findById(req.params.id)
+		.then(handle404)
+		.then((userProfile) => res.status(200).json({ matches: userProfile.matched }))
 		// if an error occurs, pass it to the handler
 		.catch(next)
 })
@@ -94,7 +115,7 @@ router.patch('/userProfile/:id', requireToken, removeBlanks, (req, res, next) =>
 			return user.save()
 	})
 		// if that succeeded, return 204 and no JSON
-		.then((profile) => res.sendStatus(204))
+		.then(() => res.sendStatus(204))
 		// if an error occurs, pass it to the handler
 		.catch(next)
 })
@@ -121,14 +142,62 @@ router.patch('/userProfile/:id/likeOrDislike', requireToken, removeBlanks, (req,
 			UserProfileModel.findById(targetId)
 				.then(handle404)
 				.then((otherUser) => {
-					if (likeOrDislike === 'Like') {
-						otherUser.likedBy.push(profileId)
-					} else if (likeOrDislike === 'Dislike') {
-						profileToUpdate.dislikedBy.push(profileId)
-					}
-					return otherUser.save()
+						if (likeOrDislike === 'Like') {
+							otherUser.likedBy.push(profileId)
+						} else if (likeOrDislike === 'Dislike') {
+							profileToUpdate.dislikedBy.push(profileId)
+						}
+						return otherUser.save()
+				})
+				.then((otherUserData) => {
+					User.findById(otherUserData.owner)
+						.then((user) => {
+							const profileUpdate = user.userProfile.id(targetId)
+							if (profileUpdate !== null) {
+								profileUpdate.set(otherUserData)
+							}
+							return user.save()
+						})
+
 			})
 		})
+		// if that succeeded, return 204
+		.then(() => res.sendStatus(204))
+		// if an error occurs, pass it to the handler
+		.catch(next)
+})
+
+// UPDATE
+// PATCH /userProfile/5a7db6c74d55bc51bdf39793/likeOrDislike
+router.patch('/userProfile/:id/matches', requireToken, removeBlanks, (req, res, next) => {
+	const profileId = req.params.id
+	const matchIDs = req.body.matchIds
+	newLikes = req.body.newLikes
+	newLikedBy = req.body.newLikedBy
+
+	UserProfileModel.findById(profileId)
+		.then(handle404)
+		.then((userProfile) => {
+			userProfile.likes = newLikes
+			userProfile.likedBy = newLikedBy
+			for (let j = 0; j < matchIDs.length; j++) {
+				userProfile.matched.push(matchIDs[j])
+			}
+				return userProfile.save()
+		})
+			.then(() => {
+				for (let i = 0; i < matchIDs.length; i++) {
+					UserProfileModel.findById(matchIDs[i])
+					.then((profile) => {
+						profile.matched.push(profileId)
+						let likesIndex = profile.likes.indexOf(profileId)
+						let likedByIndex = profile.likedBy.indexOf(profileId)
+						profile.likes.splice(likesIndex, 1)
+						profile.likedBy.splice(likedByIndex, 1)
+						return UserProfileModel.updateOne()
+					})
+				}
+			})
 		// if that succeeded, return 204
 		.then(() => res.sendStatus(204))
 		// if an error occurs, pass it to the handler
