@@ -1,32 +1,30 @@
 # Plenty of CRUD
 
-Plenty of CRUD is a dating app, which allows users to create multiple profiles and brose other profiles. You can then 'like' other profiles, and potentially match! Your matches are stored to view. 
+Plenty of CRUD is a dating app that allows users to create multiple profiles and browse other profiles. Users can "like" other profiles and potentially match with them. The app keeps track of matches for users to view.
 
 ## Important Links
 
 - [Deployed Client](https://award59.github.io/plenty-of-crud-client/)
 - [Deployed API](https://plenty-of-crud.herokuapp.com)
-- [Client repo](https://github.com/AWard59/plenty-of-crud-client)
+- [Client Repository](https://github.com/AWard59/plenty-of-crud-client)
 
-## Screenshot
+## Screenshots
 
 ![Sign In/Up Page](https://i.imgur.com/j255xIuh.png)
 ![Home/Browsing Page](https://i.imgur.com/3zoJ5lBh.png)
-![Settings/ChangePassword Page](https://i.imgur.com/zuSWkVsh.png)
+![Settings/Change Password Page](https://i.imgur.com/zuSWkVsh.png)
 ![Profile Page](https://i.imgur.com/8Z7W9m2h.png)
 ![Matches Page](https://i.imgur.com/u0fBE6rh.png)
 
-
 ## Planning Story
 
-I began planning the project with the wire frames user stories. I already had an idea of how I wanted the application to look and function. I planned the application as a 'mobile-first' application, as that would typically be where an app like this is used most.
+I began planning the project by creating wireframes and user stories. I had a clear vision of how I wanted the application to look and function. Since this is a mobile-focused app, I designed it as a "mobile-first" application.
 
-As I was building a Single Page Application (SPA), I roughly planned out each 'page' in an HTML section. Then worked through them one-by-one. 
-After creating the models for the back-end, I worked through sign in/up functionality on the front-end and integrated it with API calls to the routes on the backend. 
+As a Single Page Application (SPA), I outlined each "page" as an HTML section and worked on them one by one. After creating the backend models, I implemented the sign-in/sign-up functionality on the frontend and integrated it with API calls to the backend routes.
 
-Once the basic CRUD commands had all been created and were functional, I tried to work through 1 feature at a time, for both frontend and backend, and then commit when it was complete. 
+Once the basic CRUD operations were implemented and functional, I focused on adding one feature at a time, both on the frontend and backend, and committed changes when each feature was completed.
 
-I have bigger plans of where I want to take this project, so it will be being improved. Starting with the listed features below. 
+I have plans to further improve this project. The next steps include implementing the following features:
 
 ### Entity Relationship Diagram
 
@@ -37,18 +35,18 @@ I have bigger plans of where I want to take this project, so it will be being im
 - jQuery
 - HTML/CSS
 - Bootstrap
-- Javascript
+- JavaScript
 - Express
 - MongoDB
 - Mongoose
 
 ### Unsolved Problems & Future Features
 
-No currently known issues as of this commit.
+No known issues at the moment.
 
-#### Features I want to implement:-
+#### Features I want to implement
 
-- Upload Profile Images
-- Chat with Matches
-- Sign Up > Sign In > Profile Creation page chain
-- Delete Matches
+- Upload profile images
+- Chat with matches
+- Sign up > Sign in > Profile creation page chain
+- Delete matches

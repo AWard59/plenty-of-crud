@@ -28,11 +28,11 @@ const router = express.Router()
 // SHOW
 // GET /user/5a7db6c74d55bc51bdf39793
 router.get('/user/', requireToken, (req, res, next) => {
-	User.findById(req.user.id)
-		// if `findById` is succesful, respond with 200 and "user" JSON
-		.then((user) => res.status(200).json({ user: user }))
-		// if an error occurs, pass it to the handler
-		.catch(next)
+  User.findById(req.user.id)
+  // if `findById` is succesful, respond with 200 and "user" JSON
+    .then((user) => res.status(200).json({ user: user }))
+  // if an error occurs, pass it to the handler
+    .catch(next)
 })
 
 // SIGN UP
